@@ -4,6 +4,11 @@ A serverless Python microservice that provides a unified REST API for integratin
 
 ---
 
+## 🎥 Project Demo
+
+Watch the project walkthrough here: [YouTube Link](https://youtu.be/4H-qGkSYQS4)
+
+---
 ## 1. ATS Setup & Access
 
 This service abstracts the complexity of different ATS providers. To use it, you need to set up accounts and generate credentials.
@@ -106,7 +111,8 @@ curl http://localhost:3000/dev/jobs
 ```
 
 **Response Screenshot:**
-*(Place screenshot here)*
+<img width="1459" height="214" alt="Screenshot 2026-01-29 at 8 24 22 PM" src="https://github.com/user-attachments/assets/1be108cf-3945-4360-becb-19509556594c" />
+
 
 ---
 
@@ -126,7 +132,8 @@ curl -X POST http://localhost:3000/dev/candidates \
 ```
 
 **Response Screenshot:**
-*(Place screenshot here)*
+<img width="1456" height="444" alt="Screenshot 2026-01-29 at 8 25 22 PM" src="https://github.com/user-attachments/assets/13db5e72-4e98-426e-892a-1b2add8d4aa2" />
+
 
 ---
 
@@ -139,7 +146,8 @@ curl "http://localhost:3000/dev/applications?job_id=210805000000354811"
 ```
 
 **Response Screenshot:**
-*(Place screenshot here)*
+<img width="1464" height="399" alt="Screenshot 2026-01-29 at 8 26 41 PM" src="https://github.com/user-attachments/assets/036bb690-d850-4949-9fc2-1db53c88d8fa" />
+
 
 ---
 
