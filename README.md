@@ -14,9 +14,33 @@ This service abstracts the complexity of different ATS providers. To use it, you
 *   **Workable**: Sign up for a 15-day free trial on the [Workable website](https://www.workable.com/free-trial/). No credit card is required.
 
 ### How to Generate API Keys / Tokens
-*   **Zoho Recruit (OAuth 2.0)**: Follow the detailed step-by-step guide in [SETUP.md](file:///Users/sachinyaduwanshi/Desktop/banao_assessment_task_2/SETUP.md#2-obtaining-zoho-oauth-credentials) to register a client and generate a refresh token.
-*   **Greenhouse**: Go to `Configure (Gear Icon) -> Dev Center -> API Credential Management` and click "Create New API Key".
-*   **Workable**: Navigate to `Settings -> Integrations -> Access Tokens` and generate a new token.
+
+#### Zoho Recruit (OAuth 2.0)
+Zoho requires a more detailed setup compared to others. Follow these steps:
+
+1.  **Register Zoho Client**:
+    - Go to the [Zoho API Console](https://api-console.zoho.com/).
+    - Click **Add Client** -> **Server-based Applications**.
+    - Set **Homepage URL** and **Authorized Redirect URIs** (e.g., `http://localhost:3000/callback`).
+    - Copy the **Client ID** and **Client Secret**.
+
+2.  **Generate Grant Token**:
+    - In the Console, go to the **Generate Code** tab of your client.
+    - Scopes: `ZohoRecruit.modules.ALL,ZohoRecruit.settings.ALL`
+    - Click **Generate** and copy the **Grant Code**.
+
+3.  **Get Refresh Token**:
+    Run the included helper script:
+    ```bash
+    python3 scripts/get_zoho_token.py YOUR_CLIENT_ID YOUR_CLIENT_SECRET YOUR_GRANT_CODE http://localhost:3000/callback
+    ```
+    Copy the **Refresh Token** from the output.
+
+#### Greenhouse
+Go to `Configure (Gear Icon) -> Dev Center -> API Credential Management` and click "Create New API Key".
+
+#### Workable
+Navigate to `Settings -> Integrations -> Access Tokens` and generate a new token.
 
 ---
 
@@ -24,8 +48,8 @@ This service abstracts the complexity of different ATS providers. To use it, you
 
 ### Prerequisites
 - Python 3.10+
-- Node.js & NPM (for Serverless Framework)
-- Active ATS credentials (API Key or Refresh Token)
+- Node.js & NPM
+- Active ATS credentials
 
 ### Local Setup
 1.  **Clone the repository and enter the directory**:
@@ -42,7 +66,26 @@ This service abstracts the complexity of different ATS providers. To use it, you
     pip install -r requirements.txt
     npm install
     ```
-4.  **Configure Environment**: Create a `.env` file from the [SETUP.md Template](file:///Users/sachinyaduwanshi/Desktop/banao_assessment_task_2/SETUP.md#3-environment-variables-env).
+
+### Configuration (.env)
+Create a `.env` file in the root directory.
+
+**For Zoho:**
+```env
+ATS_PROVIDER=zoho
+ZOHO_CLIENT_ID=your_client_id
+ZOHO_CLIENT_SECRET=your_client_secret
+ZOHO_REFRESH_TOKEN=your_refresh_token
+ZOHO_BASE_URL=https://recruit.zoho.com/recruit/v2
+ZOHO_TOKEN_URL=https://accounts.zoho.com/oauth/v2/token
+```
+
+**For Greenhouse/Workable:**
+```env
+ATS_PROVIDER=greenhouse  # or workable
+ATS_API_KEY=your_api_key
+ATS_BASE_URL=https://api.greenhouse.io/v1
+```
 
 ### Running the Service
 ```bash
@@ -76,8 +119,8 @@ curl -X POST http://localhost:3000/dev/candidates \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Jane Doe",
-    "email": "jane.doe@example.com",
-    "phone": "555-0199",
+    "email": "jane.doe453@example.com",
+    "phone": "555-0199998",
     "job_id": "210805000000354811"
   }'
 ```
@@ -105,24 +148,13 @@ curl "http://localhost:3000/dev/applications?job_id=210805000000354811"
 For a technical deep dive, see [doc.md](file:///Users/sachinyaduwanshi/Desktop/banao_assessment_task_2/doc.md).
 
 ### Error Handling Flow
-When an ATS returns an error (e.g., 401 Unauthorized or 404 Not Found), the microservice catches the exception in the Provider layer and wraps it into a **Clean JSON Error**.
-
-**Internal Logic:**
-1.  Provider raises `ATSError(message, status_code)`.
-2.  `handler.py` catches the error in a `try/except` block.
-3.  Client receives:
-    ```json
-    {
-      "error": true,
-      "message": "Friendly error message",
-      "status_code": 401
-    }
-    ```
+The microservice catches ATS-specific failures and wraps them into a **Clean JSON Error**.
+- Provider raises `ATSError`.
+- `handler.py` catches the error.
+- Client receives a structured JSON with `error: true`, a message, and a status code.
 
 ### Pagination Implementation
-The service uses a recursive fetching strategy to ensure all data is retrieved, even if the ATS paginates its responses.
-
-*   **How it works**: The `utils/pagination.py` utility handles the loop. It calls the provider's fetch method repeatedly, incrementing the `page` number each time until no more results are found.
-*   **Concurrency & Speed**: Pages are currently fetched **sequentially** (one at a time) to respect ATS rate limits and avoid overwhelming the external API.
-*   **Safety Break**: To prevent infinite loops with mock data or misbehaving APIs, there is a hard safety limit of **100 pages** per request.
-*   **Data Source**: All pages are aggregated into a single list before being returned to the user, providing a seamless "fetch all" experience.
+Implemented in `utils/pagination.py`:
+- **Sequential Fetching**: Fetches all pages one by one to respect rate limits.
+- **Safety Break**: Hard limit of **100 pages** per request to prevent infinite loops.
+- **Aggregation**: Combines all results into a single list before returning to the client.
