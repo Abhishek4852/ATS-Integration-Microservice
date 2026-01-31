@@ -29,17 +29,30 @@ Zoho requires a more detailed setup compared to others. Follow these steps:
     - Set **Homepage URL** and **Authorized Redirect URIs** (e.g., `http://localhost:3000/callback`).
     - Copy the **Client ID** and **Client Secret**.
 
-2.  **Generate Grant Token**:
-    - In the Console, go to the **Generate Code** tab of your client.
-    - Scopes: `ZohoRecruit.modules.ALL,ZohoRecruit.settings.ALL`
-    - Click **Generate** and copy the **Grant Code**.
+2. **Generate Grant Code (Browser-based – Recommended)**:
+   - Open the following URL in your browser:
+     ```
+     https://accounts.zoho.com/oauth/v2/auth
+     ?scope=ZohoRecruit.modules.ALL,ZohoRecruit.settings.ALL
+     &client_id=YOUR_CLIENT_ID
+     &response_type=code
+     &access_type=offline
+     &redirect_uri=http://localhost:3000/callback
+     ```
+   - `access_type=offline` is **mandatory** to receive a refresh token.
+   - After login and consent, you will be redirected to:
+     ```
+     http://localhost:3000/callback?code=1000.xxxxx
+     ```
+   - Copy the value of `code` — this is your **Grant Code**.
+   - ⚠️ Grant Code expires in a few minutes.
 
 3.  **Get Refresh Token**:
     Run the included helper script:
     ```bash
     python3 scripts/get_zoho_token.py YOUR_CLIENT_ID YOUR_CLIENT_SECRET YOUR_GRANT_CODE http://localhost:3000/callback
     ```
-    Copy the **Refresh Token** from the output.
+    Copy the **Refresh Token** from the output and save in .env .
 
 #### Greenhouse
 Go to `Configure (Gear Icon) -> Dev Center -> API Credential Management` and click "Create New API Key".
